@@ -7,7 +7,7 @@ import qualified IDP.Github          as IGithub
 import           Session
 import           Types
 import           Control.Monad.Reader (ReaderT)
-import           Config
+import           Types
 import           Control.Monad.IO.Class (liftIO)
 
 

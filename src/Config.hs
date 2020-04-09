@@ -33,6 +33,7 @@ import           System.Environment                   (lookupEnv)
 import           Control.Monad.IO.Class
 
 import           Logger
+import           Types
 
 -- | This type represents the effects we want to have for our application.
 -- We wrap the standard Servant monad with 'ReaderT Config', which gives us
@@ -51,21 +52,8 @@ newtype AppT m a
 
 type App = AppT IO
 
--- | The Config for our application is (for now) the 'Environment' we're
--- running in and a Persistent 'ConnectionPool'.
-data Config
-    = Config
-    { configPool       :: ConnectionPool
-    , configEnv        :: Environment
-    , configMetrics    :: Metrics
-    , configEkgServer  :: ThreadId
-    , configLogEnv     :: LogEnv
-    , configPort       :: Port
-    , configOauth      :: OAuth2
-    }
-
 instance Monad m => MonadMetrics (AppT m) where
-    getMetrics = asks Config.configMetrics
+    getMetrics = asks configMetrics
 
 -- | Katip instance for @AppT m@
 instance MonadIO m => Katip (AppT m) where
@@ -79,14 +67,6 @@ instance MonadIO m => MonadLogger (AppT m) where
 -- | MonadLogger instance to use in @makePool@
 instance MonadIO m => MonadLogger (KatipT m) where
     monadLoggerLog = adapt logMsg
-
--- | Right now, we're distinguishing between three environments. We could
--- also add a @Staging@ environment if we needed to.
-data Environment
-    = Development
-    | Test
-    | Production
-    deriving (Eq, Show, Read)
 
 -- | This returns a 'Middleware' based on the environment that we're in.
 setLogger :: Environment -> Middleware

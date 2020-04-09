@@ -24,7 +24,7 @@ import Database.Persist.TH  (mkMigrate, mkPersist, persistLowerCase,
                               share, sqlSettings)
 import Elm.Derive   (defaultOptions, deriveElmDef)
 
-import Config               (Config, configPool)
+import Types               (Config, configPool)
 import Data.Text            (Text)
 -- import Data.Aeson           (FromJSON, ToJSON)
 -- import GHC.Generics

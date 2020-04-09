@@ -11,7 +11,8 @@ import           Servant.Server
 
 import           Api.User             (UserAPI, userServer, userApi)
 -- import           Api.Auth             (AuthAPI, authServer, authApi)
-import           Config               (AppT (..), Config (..))
+import           Config               (AppT (..))
+import           Types                (Config(..))
 
 -- | This is the function we export to run our 'UserAPI'. Given
 -- a 'Config', we return a WAI 'Application' which any WAI compliant server

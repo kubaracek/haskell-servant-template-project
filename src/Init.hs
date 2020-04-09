@@ -15,8 +15,8 @@ import           System.Remote.Monitoring    (forkServer, serverMetricStore, ser
 
 import           Api                         (app)
 import           Api.User
-import           Config                      (Config (..), Environment (..),
-                                              makePool, setLogger)
+import           Config                      (makePool, setLogger)
+import           Types                      (Config (..), Environment (..), configCache)
 import           Control.Exception           (bracket)
 import qualified Data.Pool                   as Pool
 import qualified Katip
@@ -40,8 +40,7 @@ runApp = bracket acquireConfig shutdownApp runApp
 -- initializes the WAI 'Application' and returns it
 initialize :: Config -> IO Application
 initialize cfg = do
-    cacheStore <- initCacheStore
-    _ <- runReaderT (initIdps cacheStore) cfg
+    _ <- runReaderT (initIdps (configCache cfg)) cfg
     waiMetrics <- registerWaiMetrics (configMetrics cfg ^. M.metricsStore)
     let logger = setLogger (configEnv cfg)
     runSqlPool doMigrations (configPool cfg)
@@ -57,6 +56,8 @@ acquireConfig = do
     logEnv       <- defaultLogEnv
     pool         <- makePool env logEnv
     ekgServer    <- forkServer "localhost" 8000
+    cacheStore   <- initCacheStore
+
     let store = serverMetricStore ekgServer
         oauth = OAuth2
                 { oauthClientId = oauth_client
@@ -74,6 +75,7 @@ acquireConfig = do
         , configPort = port
         , configEkgServer = serverThreadId ekgServer
         , configOauth = oauth
+        , configCache = cacheStore
         }
 
 -- | Takes care of cleaning up 'Config' resources

@@ -14,7 +14,7 @@ import           Network.OAuth.OAuth2
 import           URI.ByteString
 import           URI.ByteString.QQ
 
-import           Config               (configOauth)
+import           Types               (configOauth)
 import           Control.Monad.Reader (asks)
 import           Control.Monad.IO.Class (liftIO)
 

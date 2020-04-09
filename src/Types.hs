@@ -19,7 +19,33 @@ import           Network.HTTP.Conduit
 import           Network.OAuth.OAuth2
 import qualified Network.OAuth.OAuth2.TokenRequest as TR
 import           Control.Monad.Reader (ReaderT)
-import           Config
+import           Database.Persist.Postgresql          (ConnectionPool)
+import           Control.Monad.Metrics                (Metrics)
+import           Control.Concurrent                   (ThreadId)
+import           Network.Wai.Handler.Warp             (Port)
+import           Logger
+
+-- | Right now, we're distinguishing between three environments. We could
+-- also add a @Staging@ environment if we needed to.
+data Environment
+    = Development
+    | Test
+    | Production
+    deriving (Eq, Show, Read)
+
+-- | The Config for our application is (for now) the 'Environment' we're
+-- running in and a Persistent 'ConnectionPool'.
+data Config
+    = Config
+    { configPool       :: ConnectionPool
+    , configEnv        :: Environment
+    , configMetrics    :: Metrics
+    , configEkgServer  :: ThreadId
+    , configLogEnv     :: LogEnv
+    , configPort       :: Port
+    , configOauth      :: OAuth2
+    , configCache      :: CacheStore
+    }
 
 type IDPLabel = Text
 
