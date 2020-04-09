@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric              #-}
 
+{-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -9,23 +10,23 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 module Models where
 
-import Model.CustomTypes()
-import Control.Monad.Reader (MonadIO, MonadReader, asks, liftIO)
-import Database.Persist.Sql (SqlPersistT, runMigration, runSqlPool, entityKey, fromSqlKey)
-import Database.Persist.TH  (mkMigrate, mkPersist, persistLowerCase,
-                              share, sqlSettings)
-import Elm.Derive   (defaultOptions, deriveElmDef)
+import           Control.Monad.Reader (MonadIO, MonadReader, asks, liftIO)
+import           Database.Persist.Sql (SqlPersistT, entityKey, fromSqlKey,
+                                       runMigration, runSqlPool)
+import           Database.Persist.TH  (mkMigrate, mkPersist, persistLowerCase,
+                                       share, sqlSettings)
+import           Elm.Derive           (defaultOptions, deriveElmDef)
+import           Model.CustomTypes    ()
 
-import Types               (Config, configPool)
-import Data.Text            (Text)
+import           Data.Text            (Text)
+import           Types                (Config, configPool)
 -- import Data.Aeson           (FromJSON, ToJSON)
 -- import GHC.Generics
 

@@ -18,6 +18,7 @@ import           Control.Monad.Reader                 (MonadIO, MonadReader,
                                                        ReaderT, asks)
 import           Network.OAuth.OAuth2                 (OAuth2)
 
+import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Maybe            (MaybeT (..), runMaybeT)
 import qualified Data.ByteString.Char8                as BS
@@ -30,10 +31,9 @@ import           Network.Wai.Handler.Warp             (Port)
 import           Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
 import           Servant.Server.Internal.ServerError  (ServerError)
 import           System.Environment                   (lookupEnv)
-import           Control.Monad.IO.Class
 
 import           Logger
-import           Types                                
+import           Types
 
 -- | This type represents the effects we want to have for our application.
 -- We wrap the standard Servant monad with 'ReaderT Config', which gives us

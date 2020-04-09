@@ -4,15 +4,14 @@
 module Api (app) where
 
 import           Control.Monad.Reader (runReaderT)
-import           Servant              ((:<|>) ((:<|>)),
-                                       Proxy (Proxy), Raw, Server,
-                                       serve, serveDirectoryFileServer)
+import           Servant              ((:<|>) ((:<|>)), Proxy (Proxy), Raw,
+                                       Server, serve, serveDirectoryFileServer)
 import           Servant.Server
 
-import           Api.User             (UserAPI, userServer, userApi)
-import           Api.Auth             (AuthAPI, authServer, authApi)
+import           Api.Auth             (AuthAPI, authApi, authServer)
+import           Api.User             (UserAPI, userApi, userServer)
 import           Config               (AppT (..))
-import           Types                (Config(..))
+import           Types                (Config (..))
 
 -- | This is the function we export to run our 'UserAPI'. Given
 -- a 'Config', we return a WAI 'Application' which any WAI compliant server
@@ -30,7 +29,7 @@ userAppToServer cfg = hoistServer userApi (convertApp cfg) userServer
 
 authAppToServer :: Config -> Server AuthAPI
 authAppToServer cfg = hoistServer authApi (convertApp cfg) authServer
- 
+
 -- | This function converts our @'AppT' m@ monad into the @ExceptT ServantErr
 -- m@ monad that Servant's 'enter' function needs in order to run the
 -- application.

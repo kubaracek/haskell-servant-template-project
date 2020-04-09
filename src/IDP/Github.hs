@@ -4,21 +4,22 @@
 
 module IDP.Github where
 import           Data.Aeson
-import           Types
-import           Utils
 import           Data.Bifunctor
 import           Data.Hashable
-import           Data.Text.Lazy       (Text)
+import           Data.Text.Lazy         (Text)
 import           GHC.Generics
 import           Network.OAuth.OAuth2
+import           Types
 import           URI.ByteString
 import           URI.ByteString.QQ
+import           Utils
 
-import           Types               (configOauth)
-import           Control.Monad.Reader (asks)
 import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader   (asks)
+import           Types                  (configOauth)
 
-data Github = Github deriving (Show, Generic)
+data Github = Github
+    deriving (Show, Generic)
 
 instance Hashable Github
 
@@ -44,9 +45,11 @@ instance HasAuthUri Github where
     gk <- asks configOauth
     liftIO $ pure $ createCodeUri gk [("state", "Github.test-state-123")]
 
-data GithubUser = GithubUser { name :: Text
-                             , id   :: Integer
-                             } deriving (Show, Generic)
+data GithubUser = GithubUser
+    { name :: Text
+    , id   :: Integer
+    }
+    deriving (Show, Generic)
 
 instance FromJSON GithubUser where
     parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = camelTo2 '_' }

@@ -1,42 +1,47 @@
 {-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Api.Auth where
 
-import           Control.Monad.Logger        (logDebugNS)
+import           Control.Monad.Logger    (logDebugNS)
 import           Data.Bifunctor
 
-import           Network.HTTP.Conduit        (newManager, tlsManagerSettings, Manager)
-import           Servant
-import           Data.Text                   (Text, pack)
-import           Data.Text.Encoding
-import Data.Maybe
-import           Data.Text
-import qualified Data.Text.Lazy              as TL
-import           Data.Text.Lazy.Encoding     (encodeUtf8)
-import           Control.Monad               (when)
-import           Control.Monad.Except        (MonadIO)
-import           Config                      (AppT (..))
-import           Types                       (configCache)
-import           Session                     (allValues, lookupKey, insertIDPData)
-import           Control.Monad.Reader (MonadIO, MonadReader, asks, liftIO, lift, runReaderT)
-import Data.Aeson           (ToJSON, toJSON, toEncoding, genericToEncoding, defaultOptions, object, (.=))
-import GHC.Generics
+import           Config                  (AppT (..))
+import           Control.Monad           (when)
+import           Control.Monad.Except    (MonadIO)
+import           Control.Monad.Reader    (MonadIO, MonadReader, asks, lift,
+                                          liftIO, runReaderT)
+import           Data.Aeson              (ToJSON, defaultOptions,
+                                          genericToEncoding, object, toEncoding,
+                                          toJSON, (.=))
 import           Data.ByteString
-import Types
-import Utils     (bslToText)
-import IDP       (parseIDP)
+import           Data.Maybe
+import           Data.Text
+import           Data.Text               (Text, pack)
+import           Data.Text.Encoding
+import qualified Data.Text.Lazy          as TL
+import           Data.Text.Lazy.Encoding (encodeUtf8)
+import           GHC.Generics
+import           IDP                     (parseIDP)
+import           Network.HTTP.Conduit    (Manager, newManager,
+                                          tlsManagerSettings)
 import           Network.OAuth.OAuth2
+import           Servant
+import           Session                 (allValues, insertIDPData, lookupKey)
+import           Types
+import           Types                   (configCache)
+import           Utils                   (bslToText)
 
 
 data Authorized = AuthorizedFailed
-                | AuthorizedSuccess Text String
+    | AuthorizedSuccess Text String
 
-data Authorize = Authorize {
-        url :: Text
-  } deriving (Generic, Show)
+data Authorize = Authorize
+    { url :: Text
+    }
+    deriving (Generic, Show)
 
 instance ToJSON Authorize where
     -- No need to provide a toJSON implementation.
@@ -78,10 +83,11 @@ authApi = Proxy
 authServer :: MonadIO m => ServerT AuthAPI (AppT m)
 authServer = listIDPs :<|> authorizedCallback
 
-data OAuthIDP =
-  OAuthIDP { label :: IDPLabel
-           , authUrl   :: TL.Text
-           } deriving (Generic)
+data OAuthIDP = OAuthIDP
+    { label   :: IDPLabel
+    , authUrl :: TL.Text
+    }
+    deriving (Generic)
 
 instance ToJSON OAuthIDP
 
@@ -99,7 +105,7 @@ authorizedCallback mc ms = do
       let eitherIdpApp = parseIDP (TL.takeWhile (/= '.') state)
       case eitherIdpApp of
         Right (IDPApp idp) -> fetchTokenAndUser cache code idp
-        Left _ -> throwError err400
+        Left _             -> throwError err400
 
     _ -> throwError err400
   where
@@ -119,8 +125,8 @@ authorizedCallback mc ms = do
         result <- fetchTokenAndUser' cache (TL.toStrict code) idp idpData
         case result of
                 Right _  -> return $ AuthorizedSuccess "some" "body"
-                Left err -> throwError err400 { errBody = Data.Text.Lazy.Encoding.encodeUtf8 $ err}
-               
+                Left err -> throwError err400 { errBody = Data.Text.Lazy.Encoding.encodeUtf8 err}
+
     fetchTokenAndUser' :: (MonadIO m, HasTokenReq a, HasUserReq a) =>
                 CacheStore -> Text -> a -> IDPData -> AppT m (Either TL.Text ())
     fetchTokenAndUser' c code idp idpData = do

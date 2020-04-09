@@ -3,31 +3,33 @@
 
 module Init where
 
-import           Network.OAuth.OAuth2        (OAuth2(..))
 import           Control.Concurrent          (killThread)
 import qualified Control.Monad.Metrics       as M
 import           Database.Persist.Postgresql (runSqlPool)
 import           Lens.Micro                  ((^.))
+import           Network.OAuth.OAuth2        (OAuth2 (..))
 import           Network.Wai                 (Application)
 import           Network.Wai.Metrics         (metrics, registerWaiMetrics)
 import           System.Environment          (lookupEnv)
-import           System.Remote.Monitoring    (forkServer, serverMetricStore, serverThreadId)
+import           System.Remote.Monitoring    (forkServer, serverMetricStore,
+                                              serverThreadId)
 
 import           Api                         (app)
 import           Api.User
 import           Config                      (makePool, setLogger)
-import           Types                      (Config (..), Environment (..), configCache)
 import           Control.Exception           (bracket)
+import           Control.Monad.Reader        (runReaderT)
 import qualified Data.Pool                   as Pool
+import           IDP
 import qualified Katip
 import           Logger                      (defaultLogEnv)
 import           Models                      (doMigrations)
 import           Network.Wai.Handler.Warp    (run)
 import           Safe                        (readMay)
-import           URI.ByteString.QQ
-import           IDP
 import           Session
-import           Control.Monad.Reader (runReaderT)
+import           Types                       (Config (..), Environment (..),
+                                              configCache)
+import           URI.ByteString.QQ
 
 -- | An action that creates a WAI 'Application' together with its resources,
 --   runs it, and tears it down on exit

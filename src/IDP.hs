@@ -1,14 +1,14 @@
 module IDP where
 
-import           Data.Text.Lazy      (Text)
+import           Data.Text.Lazy         (Text)
 
-import qualified Data.HashMap.Strict as Map
-import qualified IDP.Github          as IGithub
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader   (ReaderT)
+import qualified Data.HashMap.Strict    as Map
+import qualified IDP.Github             as IGithub
 import           Session
 import           Types
-import           Control.Monad.Reader (ReaderT)
 import           Types
-import           Control.Monad.IO.Class (liftIO)
 
 
 -- TODO: make this generic to discover any IDPs from idp directory.
