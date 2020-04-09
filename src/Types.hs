@@ -65,10 +65,10 @@ class (IDP a) => HasAuthUri a where
   authUri :: a -> ReaderT Config IO (Text)
 
 class (IDP a) => HasTokenReq a where
-  tokenReq :: a -> Manager -> ExchangeToken -> ReaderT Config IO (OAuth2Result TR.Errors OAuth2Token)
+  tokenReq :: a -> OAuth2 -> Manager -> ExchangeToken -> IO (OAuth2Result TR.Errors OAuth2Token)
 
 class (IDP a) => HasTokenRefreshReq a where
-  tokenRefreshReq :: a -> Manager -> RefreshToken -> ReaderT Config IO (OAuth2Result TR.Errors OAuth2Token)
+  tokenRefreshReq :: a -> OAuth2 -> Manager -> RefreshToken -> IO (OAuth2Result TR.Errors OAuth2Token)
 
 class (IDP a) => HasUserReq a where
   userReq :: a -> Manager -> AccessToken -> IO (Either BSL.ByteString LoginUser)

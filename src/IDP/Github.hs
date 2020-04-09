@@ -27,14 +27,12 @@ instance IDP Github
 instance HasLabel Github
 
 instance HasTokenReq Github where
-  tokenReq _ mgr token = do
-    gk <- asks configOauth
-    liftIO $ fetchAccessToken mgr gk token
+  tokenReq _ gk mgr token = do
+    fetchAccessToken mgr gk token
 
 instance HasTokenRefreshReq Github where
-  tokenRefreshReq _ mgr token = do
-    gk <- asks configOauth
-    liftIO $ refreshAccessToken mgr gk token
+  tokenRefreshReq _ gk mgr token = do
+    refreshAccessToken mgr gk token
 
 instance HasUserReq Github where
   userReq _ mgr at = do

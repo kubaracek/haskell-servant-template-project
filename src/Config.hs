@@ -33,7 +33,7 @@ import           System.Environment                   (lookupEnv)
 import           Control.Monad.IO.Class
 
 import           Logger
-import           Types
+import           Types                                
 
 -- | This type represents the effects we want to have for our application.
 -- We wrap the standard Servant monad with 'ReaderT Config', which gives us
