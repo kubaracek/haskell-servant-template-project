@@ -1,7 +1,7 @@
--- {-# LANGUAGE DataKinds         #-}
--- {-# LANGUAGE OverloadedStrings #-}
--- {-# LANGUAGE TypeOperators     #-}
--- {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Api.Auth where
 
@@ -10,8 +10,11 @@ import           Servant
 import           Data.Text                   (Text, pack)
 import           Data.Text.Encoding
 import Data.Maybe
+import qualified Data.Text.Lazy                    as TL
 import           Control.Monad.Except        (MonadIO)
-import           Config                      (AppT (..), configOauth)
+import           Config                      (AppT (..))
+import           Types                       (configCache)
+import           Session                     (allValues)
 import           Control.Monad.Reader (MonadIO, MonadReader, asks, liftIO)
 import Data.Aeson           (ToJSON, toJSON, toEncoding, genericToEncoding, defaultOptions, object, (.=))
 import GHC.Generics
@@ -43,42 +46,45 @@ instance ToJSON Authorized where
              ,"string" .= t
              ]
 
--- type AuthAPI =
---     "authorize" :> Get '[JSON] Authorize
---     :<|> "authorized" :> QueryParam "code" Text :> QueryParam "state" Text :> Get '[JSON] Authorized
+type AuthAPI =
+    "list-idps" :> Get '[JSON] [LoginUrl]
+    -- :<|> "authorized" :> QueryParam "code" Text :> QueryParam "state" Text :> Get '[JSON] Authorized
 
 
-doRefreshToken :: HasTokenRefreshReq a => a -> IDPData -> IO (Either String OAuth2Token)
-doRefreshToken idp idpData = do
-  mgr <- newManager tlsManagerSettings
-  case oauth2Token idpData of
-    Nothing -> return $ Left "no token found for idp"
-    Just at ->
-      case refreshToken at of
-        Nothing -> return $ Left "no refresh token presents"
-        Just rt -> do
-          re <- tokenRefreshReq idp mgr rt
-          return (first show re)
+-- doRefreshToken :: HasTokenRefreshReq a => a -> IDPData -> IO (Either String OAuth2Token)
+-- doRefreshToken idp idpData = do
+--   mgr <- newManager tlsManagerSettings
+--   case oauth2Token idpData of
+--     Nothing -> return $ Left "no token found for idp"
+--     Just at ->
+--       case refreshToken at of
+--         Nothing -> return $ Left "no refresh token presents"
+--         Just rt -> do
+--           re <- tokenRefreshReq idp mgr rt
+--           return (first show re)
 
 authApi :: Proxy AuthAPI
 authApi = Proxy
 
 -- | The server that runs the UserAPI
 authServer :: MonadIO m => ServerT AuthAPI (AppT m)
-authServer = redirectAuthorize :<|> requestAuthorized
+authServer = listIDPs -- :<|> requestAuthorized
 
-redirectAuthorize :: MonadIO m => AppT m (Authorize)
-redirectAuthorize = do
-  authState <- asks configOauthState
-  oa <- asks configOauth
-  authorizeUrl <- getAuthorize authState oa mempty
-  throwError $ err301 { errHeaders = [("Location", Data.Text.Encoding.encodeUtf8 authorizeUrl)] }
+data LoginUrl = LoginUrl TL.Text deriving (Generic)
 
-requestAuthorized :: MonadIO m => Maybe Text -> Maybe Text -> AppT m (Authorized)
-requestAuthorized mc ms = do
-  authState <- asks configOauthState
-  oa <- asks configOauth
-  mtoken <- getAuthorized oa authState mc ms
-  case mtoken of
-        Just (token,_) -> pure $ AuthorizedSuccess token (show ms)
-        Nothing    -> pure $ AuthorizedFailed
+instance ToJSON LoginUrl
+
+listIDPs :: MonadIO m => AppT m ([LoginUrl])
+listIDPs = do
+  cache <- asks configCache
+  idps <- liftIO $ allValues cache
+  pure $ fmap (\x -> LoginUrl (codeFlowUri x)) idps
+
+-- requestAuthorized :: MonadIO m => Maybe Text -> Maybe Text -> AppT m (Authorized)
+-- requestAuthorized mc ms = do
+--   authState <- asks configOauthState
+--   oa <- asks configOauth
+--   mtoken <- getAuthorized oa authState mc ms
+--   case mtoken of
+--         Just (token,_) -> pure $ AuthorizedSuccess token (show ms)
+--         Nothing    -> pure $ AuthorizedFailed

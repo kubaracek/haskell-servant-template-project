@@ -59,6 +59,7 @@ library
       , Models
       , Api
       , Api.User
+      , Api.Auth
       , IDP
       , IDP.Github
       , Logger

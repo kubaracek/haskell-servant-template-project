@@ -10,7 +10,7 @@ import           Servant              ((:<|>) ((:<|>)),
 import           Servant.Server
 
 import           Api.User             (UserAPI, userServer, userApi)
--- import           Api.Auth             (AuthAPI, authServer, authApi)
+import           Api.Auth             (AuthAPI, authServer, authApi)
 import           Config               (AppT (..))
 import           Types                (Config(..))
 
@@ -20,16 +20,16 @@ import           Types                (Config(..))
 userApp :: Config -> Application
 userApp cfg = serve userApi (userAppToServer cfg)
 
--- authApp :: Config -> Application
--- authApp cfg = serve authApi (authAppToServer cfg)
+authApp :: Config -> Application
+authApp cfg = serve authApi (authAppToServer cfg)
 
 -- | This functions tells Servant how to run the 'App' monad with our
 -- 'server' function.
 userAppToServer :: Config -> Server UserAPI
 userAppToServer cfg = hoistServer userApi (convertApp cfg) userServer
 
--- authAppToServer :: Config -> Server AuthAPI
--- authAppToServer cfg = hoistServer authApi (convertApp cfg) authServer
+authAppToServer :: Config -> Server AuthAPI
+authAppToServer cfg = hoistServer authApi (convertApp cfg) authServer
  
 -- | This function converts our @'AppT' m@ monad into the @ExceptT ServantErr
 -- m@ monad that Servant's 'enter' function needs in order to run the
@@ -48,7 +48,7 @@ files = serveDirectoryFileServer "assets"
 -- two different APIs and applications. This is a powerful tool for code
 -- reuse and abstraction! We need to put the 'Raw' endpoint last, since it
 -- always succeeds.
-type AppAPI = UserAPI :<|> Raw
+type AppAPI = UserAPI :<|> AuthAPI :<|> Raw
 
 appApi :: Proxy AppAPI
 appApi = Proxy
@@ -57,4 +57,4 @@ appApi = Proxy
 -- alongside the 'Raw' endpoint that serves all of our files.
 app :: Config -> Application
 app cfg =
-    serve appApi (userAppToServer cfg :<|> files)
+    serve appApi (userAppToServer cfg :<|> authAppToServer cfg :<|> files)

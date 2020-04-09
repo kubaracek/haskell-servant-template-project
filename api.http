@@ -7,6 +7,11 @@ Authorization: Bearer :my-token
 Content-Type: application/json
 User-Agent: JakuBot/1.0
 #
+#
+
+# Get idps
+GET :host/list-idps
+#
 
 # Get Authorize
 GET :host/authorize
