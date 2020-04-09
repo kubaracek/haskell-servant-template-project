@@ -1,0 +1,30 @@
+module Utils where
+
+import qualified Data.Aeson                 as Aeson
+import           Data.ByteString            (ByteString)
+import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.Text.Encoding         as TE
+import           Data.Text.Lazy             (Text)
+import qualified Data.Text.Lazy             as TL
+
+import           Network.OAuth.OAuth2
+import           URI.ByteString
+
+tlToBS :: TL.Text -> ByteString
+tlToBS = TE.encodeUtf8 . TL.toStrict
+
+bslToText :: BSL.ByteString -> Text
+bslToText = TL.pack . BSL.unpack
+
+parseValue :: Aeson.FromJSON a => Maybe Aeson.Value -> Maybe a
+parseValue Nothing = Nothing
+parseValue (Just a) = case Aeson.fromJSON a of
+  Aeson.Error _   -> Nothing
+  Aeson.Success b -> Just b
+
+createCodeUri :: OAuth2
+  -> [(ByteString, ByteString)]
+  -> Text
+createCodeUri key params = TL.fromStrict $ TE.decodeUtf8 $ serializeURIRef'
+  $ appendQueryParams params
+  $ authorizationUrl key

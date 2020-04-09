@@ -1,0 +1,50 @@
+:my-token = eyJhbGciOiJIUzUxMiJ9.eyJkYXQiOnsiZW1haWwiOiJtZUBqYWt1YnJhY2VrLm5ldCIsIm5hbWUiOiJKYWt1YiJ9fQ.5P9CV_6RBuNdF97o5xpY7BDMPJfrQUx9uHnwiF6_aykz1yKLcFvYdlgP5dxccxelNuhjUITOm8uRDruERRzkqA
+
+:host = http://localhost:8081
+
+:headers = <<
+Authorization: Bearer :my-token
+Content-Type: application/json
+User-Agent: JakuBot/1.0
+#
+
+# Get Authorize
+GET :host/authorize
+#
+
+# Get Users
+GET :host/users
+#
+
+
+#
+GET :host/users/Jakub
+#
+
+#Create User
+POST :host/users
+:headers
+{
+  "name": "Jakub",
+  "email": "me3@jakubracek.net",
+  "password": "1"
+}
+#
+
+#Metrics
+GET :host/metrics
+#
+
+#Get name
+GET :host/user
+:headers
+#
+
+#Login
+POST :host/login
+:headers
+{
+  "username": "Ali Baba",
+  "password": "Open Sesame"
+}
+#
