@@ -47,7 +47,7 @@ instance ToJSON Authorized where
              ]
 
 type AuthAPI =
-    "list-idps" :> Get '[JSON] [LoginUrl]
+    "list-idps" :> Get '[JSON] [OAuthIDP]
     -- :<|> "authorized" :> QueryParam "code" Text :> QueryParam "state" Text :> Get '[JSON] Authorized
 
 
@@ -70,15 +70,18 @@ authApi = Proxy
 authServer :: MonadIO m => ServerT AuthAPI (AppT m)
 authServer = listIDPs -- :<|> requestAuthorized
 
-data LoginUrl = LoginUrl TL.Text deriving (Generic)
+data OAuthIDP =
+  OAuthIDP { label :: IDPLabel
+           , authUrl   :: TL.Text
+           } deriving (Generic)
 
-instance ToJSON LoginUrl
+instance ToJSON OAuthIDP
 
-listIDPs :: MonadIO m => AppT m ([LoginUrl])
+listIDPs :: MonadIO m => AppT m ([OAuthIDP])
 listIDPs = do
   cache <- asks configCache
   idps <- liftIO $ allValues cache
-  pure $ fmap (\x -> LoginUrl (codeFlowUri x)) idps
+  pure $ fmap (\x -> OAuthIDP (idpDisplayLabel x) (codeFlowUri x)) idps
 
 -- requestAuthorized :: MonadIO m => Maybe Text -> Maybe Text -> AppT m (Authorized)
 -- requestAuthorized mc ms = do
