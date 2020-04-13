@@ -117,7 +117,7 @@ authorizedCallback mc ms = do
                   => CacheStore
                   -> TL.Text           -- ^ code
                   -> a
-                  -> AppT m (Authorized)
+                  -> AppT m Authorized
     fetchTokenAndUser cache code idp = do
         maybeIdpData <- lookIdp cache idp
         when (isNothing maybeIdpData) (throwError err400 { errBody = "Cannot find data in cache"})
@@ -127,37 +127,37 @@ authorizedCallback mc ms = do
                 Right _  -> return $ AuthorizedSuccess "some" "body"
                 Left err -> throwError err400 { errBody = Data.Text.Lazy.Encoding.encodeUtf8 err}
 
-    fetchTokenAndUser' :: (MonadIO m, HasTokenReq a, HasUserReq a) =>
-                CacheStore -> Text -> a -> IDPData -> AppT m (Either TL.Text ())
-    fetchTokenAndUser' c code idp idpData = do
-        githubKey <- asks configOauth
-        mgr <- liftIO $ newManager tlsManagerSettings
-        token <- liftIO $ tokenReq idp githubKey mgr (ExchangeToken $ code)
+fetchTokenAndUser' :: (MonadIO m, HasTokenReq a, HasUserReq a) =>
+            CacheStore -> Text -> a -> IDPData -> AppT m (Either TL.Text ())
+fetchTokenAndUser' c code idp idpData = do
+    githubKey <- asks configOauth
+    mgr <- liftIO $ newManager tlsManagerSettings
+    token <- liftIO $ tokenReq idp githubKey mgr (ExchangeToken code)
 
-        result <- case token of
-                Right at -> tryFetchUser mgr at idp
-                Left e   -> return (Left $ TL.pack $ "tryFetchUser: cannot fetch asses token. error detail: " ++ show e)
+    result <- case token of
+            Right at -> tryFetchUser mgr at idp
+            Left e   -> return (Left $ TL.pack $ "tryFetchUser: cannot fetch asses token. error detail: " ++ show e)
 
-        case result of
-                Right (luser, at) -> liftIO $ updateIdp c idpData luser at >> return (Right ())
-                Left err    -> return $ Left ("fetchTokenAndUser: " `TL.append` err)
+    case result of
+            Right (luser, at) -> liftIO $ updateIdp c idpData luser at >> return (Right ())
+            Left err    -> return $ Left ("fetchTokenAndUser: " `TL.append` err)
 
-        where
-          updateIdp c1 oldIdpData luser token =
-                insertIDPData c1 (oldIdpData {loginUser = Just luser, oauth2Token = Just token })
+    where
+      updateIdp c1 oldIdpData luser token =
+            insertIDPData c1 (oldIdpData {loginUser = Just luser, oauth2Token = Just token })
 
-          tryFetchUser :: (MonadIO m, HasUserReq a) =>
-                              Manager
-                              -> OAuth2Token -> a -> AppT m (Either TL.Text (LoginUser, OAuth2Token))
-          tryFetchUser mgr at idp = do
-                re <- fetchUser idp mgr (accessToken at)
-                return $ case re of
-                        Right user' -> Right (user', at)
-                        Left e      -> Left e
+      tryFetchUser :: (MonadIO m, HasUserReq a) =>
+                          Manager
+                          -> OAuth2Token -> a -> AppT m (Either TL.Text (LoginUser, OAuth2Token))
+      tryFetchUser mgr at idp = do
+            re <- fetchUser idp mgr (accessToken at)
+            return $ case re of
+                    Right user' -> Right (user', at)
+                    Left e      -> Left e
 
-                        -- * Fetch UserInfo
-                        --
-          fetchUser :: (MonadIO m, HasUserReq a) => a -> Manager -> AccessToken -> AppT m (Either TL.Text LoginUser)
-          fetchUser idp mgr token = do
-                        re <- liftIO $ userReq idp mgr token
-                        return (first bslToText re)
+                    -- * Fetch UserInfo
+                    --
+      fetchUser :: (MonadIO m, HasUserReq a) => a -> Manager -> AccessToken -> AppT m (Either TL.Text LoginUser)
+      fetchUser idp mgr token = do
+                    re <- liftIO $ userReq idp mgr token
+                    return (first bslToText re)

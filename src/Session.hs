@@ -5,7 +5,7 @@
 module Session where
 
 import           Control.Concurrent.MVar
-import qualified Data.HashMap.Strict     as Map
+import qualified Data.HashMap.Strict           as Map
 
 import           Types
 
@@ -17,6 +17,7 @@ allValues store = do
   m1 <- tryReadMVar store
   return $ maybe [] Map.elems m1
 
+
 removeKey :: CacheStore -> IDPLabel -> IO ()
 removeKey store idpKey = do
   m1 <- takeMVar store
@@ -24,9 +25,7 @@ removeKey store idpKey = do
   putMVar store m2
   where updateIdpData idpD = Just $ idpD { loginUser = Nothing }
 
-lookupKey :: CacheStore
-          -> IDPLabel
-          -> IO (Maybe IDPData)
+lookupKey :: CacheStore -> IDPLabel -> IO (Maybe IDPData)
 lookupKey store idpKey = do
   m1 <- tryReadMVar store
   return (Map.lookup idpKey =<< m1)
